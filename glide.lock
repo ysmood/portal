@@ -1,0 +1,59 @@
+hash: 88e3c956cf30d1fae82b09bdb1ae9a32bb521e0cec4008408a66f7efc5c96b45
+updated: 2017-08-17T17:17:55.10912004+08:00
+imports:
+- name: github.com/a8m/djson
+  version: afa66dc6bcfb823609f3c99135a8b6cc06738b9d
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
+- name: github.com/klauspost/compress
+  version: f3dce52e0576655d55fd69e74b63da96ad1108f3
+  subpackages:
+  - flate
+  - gzip
+  - zlib
+- name: github.com/klauspost/cpuid
+  version: ae7887de9fa5d2db4eaa8174a7eff2c1ac00f2da
+- name: github.com/robfig/cron
+  version: b024fc5ea0e34bc3f83d9941c8d60b0622bfaca4
+- name: github.com/satori/go.uuid
+  version: 5bf94b69c6b68ee1b541973bb8e1144db23a194b
+- name: github.com/syndtr/goleveldb
+  version: b89cc31ef7977104127d34c1bd31ebd1a9db2199
+  subpackages:
+  - leveldb
+  - leveldb/cache
+  - leveldb/comparer
+  - leveldb/errors
+  - leveldb/filter
+  - leveldb/iterator
+  - leveldb/journal
+  - leveldb/memdb
+  - leveldb/opt
+  - leveldb/storage
+  - leveldb/table
+  - leveldb/util
+- name: github.com/valyala/fasthttp
+  version: d42167fd04f636e20b005e9934159e95454233c7
+  subpackages:
+  - fasthttputil
+- name: github.com/ysmood/gisp
+  version: 144d1ecc24b355036315ae146f7f8d8bca7bc29b
+  subpackages:
+  - lib
+- name: github.com/ysmood/gosize
+  version: 23e3824011547812079e465bd1a448c37c39aee4
+- name: github.com/ysmood/umi
+  version: 395a5d1a96d6b2a42d0f077c9f869365c4f85418
+testImports:
+- name: github.com/davecgh/go-spew
+  version: adab96458c51a58dc1783b3335dcce5461522e75
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: 890a5c3458b43e6104ff5da8dfa139d013d77544
+  subpackages:
+  - assert

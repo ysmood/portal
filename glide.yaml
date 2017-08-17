@@ -1,0 +1,15 @@
+package: github.com/ysmood/portal
+import:
+- package: github.com/a8m/djson
+  version: ~1.0.0-alpha.1
+- package: github.com/syndtr/goleveldb
+  subpackages:
+  - leveldb
+- package: github.com/valyala/fasthttp
+  version: ~20160617.0.0
+- package: github.com/ysmood/gisp
+  subpackages:
+  - lib
+- package: github.com/ysmood/umi
+- package: github.com/robfig/cron
+  version: ^1.0.0

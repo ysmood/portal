@@ -1,0 +1,23 @@
+{
+  "name": "portal-linux",
+  "version": "1.11.5",
+  "description": "a high performance cache server",
+  "main": "index.js",
+  "scripts": {
+    "test": "go test ./lib .",
+    "prepublish": "go test ./lib . && GOOS=linux GOARCH=amd64 go build"
+  },
+  "bin": {
+    "portal": "portal"
+  },
+  "files": [
+    "portal"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git.com"
+  },
+  "author": "ys",
+  "license": "ISC"
+}
+ 

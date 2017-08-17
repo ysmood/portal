@@ -11,7 +11,7 @@ import (
 )
 
 type costCache struct {
-	lock  *sync.Mutex
+	lock  *sync.RWMutex
 	chAdd chan *costMessage
 	cache *umi.Cache
 }
@@ -23,7 +23,7 @@ type costMessage struct {
 
 func newCostCache() *costCache {
 	cost := &costCache{
-		lock:  &sync.Mutex{},
+		lock:  &sync.RWMutex{},
 		chAdd: make(chan *costMessage, 100000),
 		cache: umi.New(&umi.Options{
 			MaxMemSize: 100 * 1024 * 1024, // 100MB
@@ -53,6 +53,9 @@ func newCostCache() *costCache {
 	return cost
 }
 func (c *costCache) printList() {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+
 	items := c.cache.Items()
 
 	type listItem struct {
@@ -88,8 +91,8 @@ func (c *costCache) add(uri string, num uint64) {
 }
 
 func (c *costCache) get(uri string) uint64 {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 
 	num, has := c.cache.Get(uri)
 

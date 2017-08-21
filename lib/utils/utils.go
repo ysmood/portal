@@ -20,6 +20,7 @@ func Wait(clean func()) {
 	go func() {
 		// sig is a ^C, handle it
 		<-c
+		clean()
 		finish <- true
 	}()
 
@@ -91,6 +92,7 @@ func parseVersion(s string) *version {
 	return &v
 }
 
+// LookupStrEnv ...
 func LookupStrEnv(key string, defaultVal string) string {
 	s, has := os.LookupEnv(key)
 
@@ -101,6 +103,7 @@ func LookupStrEnv(key string, defaultVal string) string {
 	return defaultVal
 }
 
+// LookupIntEnv ...
 func LookupIntEnv(key string, defaultVal int) int {
 	s, has := os.LookupEnv(key)
 

@@ -190,7 +190,8 @@ func (appCtx *AppContext) getDeps(deps map[*File]bool, file *File) {
 	}
 }
 
-func (appCtx *AppContext) queryDeps(ctx *fasthttp.RequestCtx, uri string) {
+func (appCtx *AppContext) queryDeps(ctx *fasthttp.RequestCtx) {
+	uri := string(ctx.QueryArgs().Peek("uri"))
 	deps := map[*File]bool{}
 
 	value, _ := appCtx.cache.Get(uri)
@@ -212,6 +213,44 @@ func (appCtx *AppContext) queryDeps(ctx *fasthttp.RequestCtx, uri string) {
 		ctx.Error(err.Error(), 500)
 		return
 	}
+
+	ctx.SetContentType("application/json; charset=utf-8")
+	ctx.Write(data)
+}
+
+func (appCtx *AppContext) boundaryQuotaList(ctx *fasthttp.RequestCtx) {
+	boundary, _ := ctx.QueryArgs().GetUfloat("boundary")
+
+	items := appCtx.cache.Items()
+
+	type listItem struct {
+		URI   string
+		Cost  uint64
+		Quota uint64
+	}
+
+	list := []listItem{}
+
+	for _, item := range items {
+		file := *item.Value().(*File)
+		cost := appCtx.cost.get(file.URI)
+		quota := file.Quota
+
+		a := float64(cost / 1e9)
+		b := float64(quota / 1e9)
+
+		if quota > 0 && a/b < boundary {
+			continue
+		}
+
+		list = append(list, listItem{
+			URI:   file.URI,
+			Cost:  cost,
+			Quota: quota,
+		})
+	}
+
+	data, _ := json.Marshal(list)
 
 	ctx.SetContentType("application/json; charset=utf-8")
 	ctx.Write(data)
@@ -312,8 +351,10 @@ func (appCtx *AppContext) ControlService() func() {
 				appCtx.logList(ctx)
 
 			case "/query-deps":
-				uri := string(ctx.QueryArgs().Peek("uri"))
-				appCtx.queryDeps(ctx, uri)
+				appCtx.queryDeps(ctx)
+
+			case "/boundary-quota-list":
+				appCtx.boundaryQuotaList(ctx)
 
 			default:
 				ctx.NotFound()

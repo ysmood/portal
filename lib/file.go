@@ -185,10 +185,13 @@ func newFile(uri string, header map[string]string, body []byte) *File {
 			case "Binary":
 				fileType = 4
 			case "Proxy":
-				fileType = 3
 				fallthrough
 			case "Gisp":
 				fileType = 2
+
+				if v == "Proxy" {
+					fileType = 3
+				}
 
 				if len(body) > maxGispFileSize {
 					fileType = 4

@@ -13,8 +13,8 @@ import (
 
 	"regexp"
 
-	"github.com/ysmood/portal/lib/utils"
 	"github.com/valyala/fasthttp"
+	"github.com/ysmood/portal/lib/utils"
 )
 
 const (
@@ -88,12 +88,12 @@ func (appCtx *AppContext) getFile(uri string) (file *File) {
 	atomic.AddInt32(&appCtx.workingCount, 1)
 	defer atomic.AddInt32(&appCtx.workingCount, -1)
 
-	appCtx.workingLock.Lock()
-	defer appCtx.workingLock.Unlock()
-
 	if appCtx.workingCount > appCtx.overload {
 		return overloadFile
 	}
+
+	appCtx.workingLock.Lock()
+	defer appCtx.workingLock.Unlock()
 
 	file = appCtx.getFileFromCache(uri)
 	if file != nil {

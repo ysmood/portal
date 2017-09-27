@@ -17,6 +17,7 @@ type gispEnv struct {
 	appCtx         *AppContext
 	fileStackDepth int
 	query          *fasthttp.Args // hack: when file import and execute another file, it will be the arguments
+	body           *fasthttp.Args
 	proxyHost      string
 	proxyFile      string
 	fnRunCount     *int
@@ -74,7 +75,8 @@ func (appCtx *AppContext) runGisp(
 		file:           file,
 		appCtx:         appCtx,
 		fileStackDepth: 0,
-		query:          reqCtx.URI().QueryArgs(),
+		query:          reqCtx.QueryArgs(),
+		body:           reqCtx.PostArgs(),
 		fnRunCount:     &fnRunCount,
 	}
 

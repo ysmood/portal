@@ -18,11 +18,11 @@ import (
 	"fmt"
 
 	"github.com/a8m/djson"
-	"github.com/ysmood/portal/lib/utils"
 	uuid "github.com/satori/go.uuid"
 	"github.com/valyala/fasthttp"
 	"github.com/ysmood/gisp"
 	gispLib "github.com/ysmood/gisp/lib"
+	"github.com/ysmood/portal/lib/utils"
 )
 
 const maxHashValue = float64(0xFFFFFFFF)
@@ -373,6 +373,26 @@ func newSandbox() *gisp.Sandbox {
 
 		"query": func(ctx *gisp.Context) interface{} {
 			val := ctx.ENV.(*gispEnv).query.Peek(ctx.ArgStr(1))
+			if val == nil && ctx.Len() > 2 {
+				return ctx.ArgStr(2)
+			}
+			return string(val)
+		},
+
+		"header": func(ctx *gisp.Context) interface{} {
+			val := ctx.ENV.(*gispEnv).reqCtx.Request.Header.Peek(ctx.ArgStr(1))
+			if val == nil && ctx.Len() > 2 {
+				return ctx.ArgStr(2)
+			}
+			return string(val)
+		},
+
+		"rawBody": func(ctx *gisp.Context) interface{} {
+			return string(ctx.ENV.(*gispEnv).reqCtx.PostBody())
+		},
+
+		"body": func(ctx *gisp.Context) interface{} {
+			val := ctx.ENV.(*gispEnv).body.Peek(ctx.ArgStr(1))
 			if val == nil && ctx.Len() > 2 {
 				return ctx.ArgStr(2)
 			}

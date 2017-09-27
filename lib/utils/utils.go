@@ -58,20 +58,34 @@ func CompareVersion(s1, s2 string) int {
 	v2 := parseVersion(s2)
 
 	var res int
-	res = strings.Compare(v1.major, v2.major)
+	res = CompareVersionSection(v1.major, v2.major)
 
 	if res != 0 {
 		return res
 	}
 
-	res = strings.Compare(v1.minor, v2.minor)
+	res = CompareVersionSection(v1.minor, v2.minor)
 
 	if res != 0 {
 		return res
 	}
 
-	return strings.Compare(v1.patch, v2.patch)
+	return CompareVersionSection(v1.patch, v2.patch)
 }
+
+// CompareVersionSection ...
+func CompareVersionSection(s1, s2 string) int {
+	l1 := len(s1)
+	l2 := len(s2)
+	if l1 == l2 {
+		return strings.Compare(s1, s2)
+	}
+	if l1 < l2 {
+		return strings.Compare(strings.Repeat("0", l2-l1)+s1, s2)
+	}
+	return strings.Compare(s1, strings.Repeat("0", l1-l2)+s2)
+}
+
 func parseVersion(s string) *version {
 	v := version{}
 	sections := strings.Split(s, ".")

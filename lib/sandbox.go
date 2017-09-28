@@ -392,7 +392,7 @@ func newSandbox() *gisp.Sandbox {
 		},
 
 		"body": func(ctx *gisp.Context) interface{} {
-			val := ctx.ENV.(*gispEnv).body.Peek(ctx.ArgStr(1))
+			val := ctx.ENV.(*gispEnv).reqCtx.PostArgs().Peek(ctx.ArgStr(1))
 			if val == nil && ctx.Len() > 2 {
 				return ctx.ArgStr(2)
 			}

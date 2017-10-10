@@ -148,7 +148,7 @@ func (appCtx *AppContext) handleProxy(uri string, ctx *fasthttp.RequestCtx) {
 			}
 		} else if env.proxyFile != "" {
 			ctx.URI().Update(env.proxyFile)
-			appCtx.handleFile(uri, ctx)
+			appCtx.handleFile(env.proxyFile, ctx)
 		}
 
 		return

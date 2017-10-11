@@ -93,7 +93,9 @@ func newSandbox() *gisp.Sandbox {
 				return nil
 			}
 
-			file.dependents.Add(env.file)
+			if file.dependents != nil {
+				file.dependents.Add(env.file)
+			}
 
 			switch mode.(string) {
 			case "json":

@@ -43,24 +43,25 @@ func (g *globCache) find(isDesc bool, uri string) (string, interface{}) {
 	return "", nil
 }
 
-func (g *globCache) AddToList(uri string) {
+func (g *globCache) UpdateToList(uri string) {
 	pattern, list := g.find(true, uri)
 	if list != nil {
-		g.Set(true, pattern, append(list.([]interface{}), uri))
+		newList := []interface{}{uri}
+		g.Set(true, pattern, utils.DelFromArr(list.([]interface{}), uri, newList))
 	}
 	pattern, list = g.find(false, uri)
 	if list != nil {
-		g.Set(false, pattern, append(list.([]interface{}), uri))
+		g.Set(false, pattern, append(utils.DelFromArr(list.([]interface{}), uri, nil), uri))
 	}
 }
 
 func (g *globCache) DelFromList(uri string) {
 	pattern, list := g.find(true, uri)
 	if list != nil {
-		g.Set(true, pattern, utils.DelFromArr(list.([]interface{}), uri))
+		g.Set(true, pattern, utils.DelFromArr(list.([]interface{}), uri, nil))
 	}
 	pattern, list = g.find(false, uri)
 	if list != nil {
-		g.Set(false, pattern, utils.DelFromArr(list.([]interface{}), uri))
+		g.Set(false, pattern, utils.DelFromArr(list.([]interface{}), uri, nil))
 	}
 }

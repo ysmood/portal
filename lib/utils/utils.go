@@ -158,8 +158,10 @@ func Slicer(left int, limit int, max int, maxLimit int) (int, int) {
 }
 
 // DelFromArr ...
-func DelFromArr(list []interface{}, target interface{}) []interface{} {
-	newList := []interface{}{}
+func DelFromArr(list []interface{}, target interface{}, newList []interface{}) []interface{} {
+	if newList == nil {
+		newList = []interface{}{}
+	}
 
 	for _, el := range list {
 		if el == target {

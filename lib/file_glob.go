@@ -14,6 +14,12 @@ type globCache struct {
 	ascCache  *umi.Cache
 }
 
+type matchInfo struct {
+	pattern string
+	order   bool
+	list    interface{}
+}
+
 func (g *globCache) getCache(isDesc bool) *umi.Cache {
 	if isDesc {
 		return g.descCache
@@ -29,39 +35,56 @@ func (g *globCache) Set(isDesc bool, pattern string, val interface{}) {
 	g.getCache(isDesc).Set(pattern, val)
 }
 
-func (g *globCache) find(isDesc bool, uri string) (string, interface{}) {
-	cache := g.getCache(isDesc)
-	for _, pattern := range cache.Keys() {
+func (g *globCache) matches(uri string) (results []*matchInfo) {
+	desc := g.getCache(true)
+	asc := g.getCache(false)
+
+	results = []*matchInfo{}
+
+	for _, pattern := range desc.Keys() {
 		matched, err := regexp.MatchString(pattern, uri)
 
 		if err == nil && matched {
-			val, _ := cache.Get(pattern)
-			return pattern, val
+			val, _ := desc.Get(pattern)
+			results = append(results, &matchInfo{
+				pattern: pattern,
+				order:   true,
+				list:    val,
+			})
 		}
 	}
 
-	return "", nil
+	for _, pattern := range asc.Keys() {
+		matched, err := regexp.MatchString(pattern, uri)
+
+		if err == nil && matched {
+			val, _ := asc.Get(pattern)
+			results = append(results, &matchInfo{
+				pattern: pattern,
+				order:   false,
+				list:    val,
+			})
+		}
+	}
+	return
 }
 
 func (g *globCache) UpdateToList(uri string) {
-	pattern, list := g.find(true, uri)
-	if list != nil {
-		newList := []interface{}{uri}
-		g.Set(true, pattern, utils.DelFromArr(list.([]interface{}), uri, newList))
-	}
-	pattern, list = g.find(false, uri)
-	if list != nil {
-		g.Set(false, pattern, append(utils.DelFromArr(list.([]interface{}), uri, nil), uri))
+	matches := g.matches(uri)
+
+	for _, match := range matches {
+		if match.order {
+			newList := []interface{}{uri}
+			g.Set(true, match.pattern, utils.DelFromArr(match.list.([]interface{}), uri, newList))
+		} else {
+			g.Set(false, match.pattern, append(utils.DelFromArr(match.list.([]interface{}), uri, nil), uri))
+		}
 	}
 }
 
 func (g *globCache) DelFromList(uri string) {
-	pattern, list := g.find(true, uri)
-	if list != nil {
-		g.Set(true, pattern, utils.DelFromArr(list.([]interface{}), uri, nil))
-	}
-	pattern, list = g.find(false, uri)
-	if list != nil {
-		g.Set(false, pattern, utils.DelFromArr(list.([]interface{}), uri, nil))
+	matches := g.matches(uri)
+	for _, match := range matches {
+		g.Set(true, match.pattern, utils.DelFromArr(match.list.([]interface{}), uri, nil))
 	}
 }

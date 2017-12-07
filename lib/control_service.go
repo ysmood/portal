@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/a8m/djson"
-	"github.com/ysmood/portal/lib/utils"
 	"github.com/valyala/fasthttp"
+	"github.com/ysmood/portal/lib/utils"
 )
 
 func (appCtx *AppContext) updateProxyCache(uri string) {
@@ -52,8 +52,6 @@ func (appCtx *AppContext) updateFile(ctx *fasthttp.RequestCtx) {
 	uri := string(ctx.QueryArgs().Peek("uri"))
 
 	appCtx.updateProxyCache(uri)
-
-	fmt.Println(action, ":", uri)
 
 	switch action {
 	case "create":

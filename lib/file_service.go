@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"regexp"
 
@@ -124,9 +125,22 @@ func (appCtx *AppContext) setHeaders(ctx *fasthttp.RequestCtx, file *File) {
 
 func (appCtx *AppContext) handleProxy(uri string, ctx *fasthttp.RequestCtx) {
 	if rule, has := appCtx.proxyMap.Get(uri); has {
-		cache := rule.(*File)
+		file := rule.(*File)
 
-		_, env, err := appCtx.runGisp(cache, ctx, true)
+		startTime := time.Now().UnixNano()
+		if appCtx.cost.many(file.URI, file.Quota, file.Concurrent) {
+			appCtx.reqCount.chStatusCode <- statusTooManyRequests
+			ctx.SetStatusCode(statusTooManyRequests)
+			ctx.Write(overloadFile.Body)
+			return
+		}
+
+		_, env, err := appCtx.runGisp(file, ctx, true)
+
+		appCtx.cost.chAdd <- &costMessage{
+			uri:  file.URI,
+			cost: uint64(time.Now().UnixNano() - startTime),
+		}
 
 		if err != nil {
 			appCtx.reqCount.chStatusCode <- statusScriptError
@@ -187,6 +201,7 @@ func (appCtx *AppContext) handleFile(uri string, ctx *fasthttp.RequestCtx) {
 		if file.ETag != nil && bytes.Equal(
 			ctx.Request.Header.Peek(ifNoneMatch), file.ETag,
 		) {
+			appCtx.reqCount.chStatusCode <- statusNotModified
 			ctx.NotModified()
 			return
 		}
@@ -203,8 +218,21 @@ func (appCtx *AppContext) handleFile(uri string, ctx *fasthttp.RequestCtx) {
 			body = file.Body
 		}
 	} else {
+		startTime := time.Now().UnixNano()
+		if appCtx.cost.many(file.URI, file.Quota, file.Concurrent) {
+			appCtx.reqCount.chStatusCode <- statusTooManyRequests
+			ctx.SetStatusCode(statusTooManyRequests)
+			ctx.Write(overloadFile.Body)
+			return
+		}
+
 		var err interface{}
 		body, _, err = appCtx.runGisp(file, ctx, false)
+
+		appCtx.cost.chAdd <- &costMessage{
+			uri:  file.URI,
+			cost: uint64(time.Now().UnixNano() - startTime),
+		}
 
 		if err != nil {
 			appCtx.reqCount.chStatusCode <- statusScriptError

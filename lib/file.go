@@ -16,6 +16,7 @@ type StringBytes []byte
 
 const maxQuota = uint64(18446744073709551615)
 const maxGispFileSize = 512 * 1024
+const maxConcurrent = uint64(10000000)
 
 // MarshalJSON ...
 func (b StringBytes) MarshalJSON() ([]byte, error) {
@@ -38,6 +39,7 @@ type File struct {
 	JSONBody    interface{} `json:"-"` // used for gisp cache
 	ContentType string      `json:"-"` // TODO: hack the double set of fasthttp Content-Type header
 	Quota       uint64      `json:"quota"`
+	Concurrent  uint32      `json:"Concurrent"`
 
 	Count      uint64 `json:"count"`
 	dependents *dependentSet
@@ -158,6 +160,7 @@ func newFile(uri string, header map[string]string, body []byte) *File {
 	var contentType string
 	var gzippedBody []byte
 	quota := maxQuota
+	concurrent := maxConcurrent
 
 	for k, v := range header {
 		switch k {
@@ -172,6 +175,9 @@ func newFile(uri string, header map[string]string, body []byte) *File {
 			continue
 		case "Portm-Quota":
 			quota, _ = strconv.ParseUint(v, 10, 64)
+			continue
+		case "Portm-Concurrent":
+			concurrent, _ = strconv.ParseUint(v, 10, 32)
 			continue
 		case "Portm-Modify-Time":
 			modifyTime = v
@@ -248,5 +254,6 @@ func newFile(uri string, header map[string]string, body []byte) *File {
 		ContentType: contentType,
 		dependents:  newDependentSet(),
 		Quota:       quota,
+		Concurrent:  uint32(concurrent),
 	}
 }

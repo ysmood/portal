@@ -142,6 +142,51 @@ func (appCtx *AppContext) logList(ctx *fasthttp.RequestCtx) {
 	ctx.Write(data)
 }
 
+func (appCtx *AppContext) costList(ctx *fasthttp.RequestCtx) {
+	offset, _ := ctx.QueryArgs().GetUint("offset")
+	limit, _ := ctx.QueryArgs().GetUint("limit")
+	count := appCtx.cost.cache.Count()
+	right := 0
+	offset, right = utils.Slicer(offset, limit, count, 200)
+	items := appCtx.cost.cache.Slice(offset, right)
+
+	type listItem struct {
+		URI        string
+		Cost       string
+		QPS        uint32
+		Concurrent uint32
+		Quota      string
+		Rejected   string
+	}
+
+	list := []listItem{}
+
+	for _, item := range items {
+		info := item.Value().(*costInfo)
+		uri := item.Key()
+
+		cache, _ := appCtx.cache.Peek(uri)
+
+		if nil == cache {
+			continue
+		}
+
+		list = append(list, listItem{
+			URI:        uri,
+			Cost:       strconv.FormatUint(info.cost, 10),
+			Quota:      strconv.FormatUint(cache.(*File).Quota, 10),
+			Concurrent: info.concurrent,
+			QPS:        info.qps,
+			Rejected:   strconv.FormatUint(info.rejected, 10),
+		})
+	}
+
+	data, _ := json.Marshal(list)
+
+	ctx.SetContentType("application/json; charset=utf-8")
+	ctx.Write(data)
+}
+
 func (appCtx *AppContext) cacheList(ctx *fasthttp.RequestCtx) {
 	offset, _ := ctx.QueryArgs().GetUint("offset")
 	limit, _ := ctx.QueryArgs().GetUint("limit")
@@ -156,7 +201,7 @@ func (appCtx *AppContext) cacheList(ctx *fasthttp.RequestCtx) {
 	for _, item := range items {
 		f := *item.Value().(*File)
 		list = append(list, f)
-		costList[f.URI] = strconv.FormatUint(appCtx.cost.get(f.URI), 10)
+		costList[f.URI] = strconv.FormatUint(appCtx.cost.get(f.URI).cost, 10)
 	}
 
 	data, err := json.Marshal(map[string]interface{}{
@@ -224,15 +269,16 @@ func (appCtx *AppContext) boundaryQuotaList(ctx *fasthttp.RequestCtx) {
 
 	type listItem struct {
 		URI   string
-		Cost  uint64
-		Quota uint64
+		Cost  string
+		Quota string
 	}
 
 	list := []listItem{}
 
 	for _, item := range items {
 		file := *item.Value().(*File)
-		cost := appCtx.cost.get(file.URI)
+		info := appCtx.cost.get(file.URI)
+		cost := info.cost
 		quota := file.Quota
 
 		a := float64(cost / 1e9)
@@ -244,8 +290,8 @@ func (appCtx *AppContext) boundaryQuotaList(ctx *fasthttp.RequestCtx) {
 
 		list = append(list, listItem{
 			URI:   file.URI,
-			Cost:  cost,
-			Quota: quota,
+			Cost:  strconv.FormatUint(cost, 10),
+			Quota: strconv.FormatUint(quota, 10),
 		})
 	}
 
@@ -345,6 +391,9 @@ func (appCtx *AppContext) ControlService() func() {
 
 			case "/cache-list":
 				appCtx.cacheList(ctx)
+
+			case "/cost-list":
+				appCtx.costList(ctx)
 
 			case "/log-list":
 				appCtx.logList(ctx)

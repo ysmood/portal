@@ -3,7 +3,6 @@ package lib
 import (
 	"bytes"
 	"encoding/json"
-	"time"
 
 	"github.com/valyala/fasthttp"
 	"github.com/ysmood/gisp"
@@ -38,13 +37,11 @@ func (appCtx *AppContext) runGisp(
 	reqCtx *fasthttp.RequestCtx,
 	isLiftErr bool,
 ) (body []byte, env *gispEnv, err interface{}) {
-	startTime := time.Now().UnixNano()
 
 	defer func() {
 		err = recover()
 		if err != nil {
 			gispErr, ok := err.(gisp.Error)
-
 			if ok {
 				if isLiftErr {
 					stack, _ := json.Marshal(gispErr.Stack)
@@ -54,16 +51,7 @@ func (appCtx *AppContext) runGisp(
 				}
 			}
 		}
-
-		appCtx.cost.chAdd <- &costMessage{
-			uri:  file.URI,
-			cost: uint64(time.Now().UnixNano() - startTime),
-		}
 	}()
-
-	if appCtx.cost.get(file.URI) > file.Quota {
-		panic("Quota exceeded")
-	}
 
 	sandbox := newSandbox()
 	fnRunCount := 0

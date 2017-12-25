@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 	"sync"
+	"sync/atomic"
 
 	"time"
 
@@ -125,13 +126,19 @@ func newSandbox() *gisp.Sandbox {
 				newEnv.file = file
 				newEnv.fileStackDepth = env.fileStackDepth + 1
 
-				return gisp.Run(&gisp.Context{
+				startTime := time.Now().UnixNano()
+
+				ret := gisp.Run(&gisp.Context{
 					AST:         file.Code,
 					Sandbox:     ctx.Sandbox.Create(),
 					ENV:         &newEnv,
 					IsLiftPanic: ctx.IsLiftPanic,
 					PreRun:      preRun,
 				})
+
+				atomic.AddUint64(&file.Cost, uint64(time.Now().UnixNano()-startTime))
+
+				return ret
 
 			case "type":
 				return file.Type.String()

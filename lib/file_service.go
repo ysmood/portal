@@ -137,9 +137,13 @@ func (appCtx *AppContext) handleProxy(uri string, ctx *fasthttp.RequestCtx) {
 
 		_, env, err := appCtx.runGisp(file, ctx, true)
 
+		timer := uint64(time.Now().UnixNano() - startTime)
+
+		atomic.AddUint64(&file.Cost, timer)
+
 		appCtx.cost.chAdd <- &costMessage{
 			uri:  file.URI,
-			cost: uint64(time.Now().UnixNano() - startTime),
+			cost: timer,
 		}
 
 		if err != nil {
@@ -229,9 +233,12 @@ func (appCtx *AppContext) handleFile(uri string, ctx *fasthttp.RequestCtx) {
 		var err interface{}
 		body, _, err = appCtx.runGisp(file, ctx, false)
 
+		timer := uint64(time.Now().UnixNano() - startTime)
+		atomic.AddUint64(&file.Cost, timer)
+
 		appCtx.cost.chAdd <- &costMessage{
 			uri:  file.URI,
-			cost: uint64(time.Now().UnixNano() - startTime),
+			cost: timer,
 		}
 
 		if err != nil {

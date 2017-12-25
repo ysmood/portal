@@ -39,10 +39,10 @@ type File struct {
 	JSONBody    interface{} `json:"-"` // used for gisp cache
 	ContentType string      `json:"-"` // TODO: hack the double set of fasthttp Content-Type header
 	Quota       uint64      `json:"quota"`
+	Cost        uint64      `json:"cost"`
 	Concurrent  uint32      `json:"Concurrent"`
-
-	Count      uint64 `json:"count"`
-	dependents *dependentSet
+	Count       uint64      `json:"count"`
+	dependents  *dependentSet
 }
 
 // FileType ...
@@ -254,6 +254,7 @@ func newFile(uri string, header map[string]string, body []byte) *File {
 		ContentType: contentType,
 		dependents:  newDependentSet(),
 		Quota:       quota,
+		Cost:        0,
 		Concurrent:  uint32(concurrent),
 	}
 }

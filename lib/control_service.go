@@ -193,22 +193,36 @@ func (appCtx *AppContext) cacheList(ctx *fasthttp.RequestCtx) {
 	count := appCtx.cache.Count()
 	right := 0
 	offset, right = utils.Slicer(offset, limit, count, 200)
-
-	list := []File{}
-	costList := make(map[string]string)
-
 	items := appCtx.cache.Slice(offset, right)
-	for _, item := range items {
-		f := *item.Value().(*File)
-		list = append(list, f)
-		costList[f.URI] = strconv.FormatUint(appCtx.cost.get(f.URI).cost, 10)
+
+	type listItem struct {
+		URI   string
+		Cost  string
+		Count string
 	}
 
-	data, err := json.Marshal(map[string]interface{}{
-		"total": count,
-		"list":  list,
-		"cost":  costList,
-	})
+	list := []listItem{}
+
+	for _, item := range items {
+		file := *item.Value().(*File)
+		list = append(list, listItem{
+			URI:   file.URI,
+			Cost:  strconv.FormatUint(file.Cost, 10),
+			Count: strconv.FormatUint(file.Count, 10),
+		})
+	}
+
+	data, _ := json.Marshal(list)
+
+	ctx.SetContentType("application/json; charset=utf-8")
+	ctx.Write(data)
+}
+
+func (appCtx *AppContext) fileInfo(ctx *fasthttp.RequestCtx) {
+	uri := string(ctx.QueryArgs().Peek("uri"))
+	file, _ := appCtx.cache.Get(uri)
+
+	data, err := json.Marshal(file)
 
 	if err != nil {
 		ctx.Error(err.Error(), 500)
@@ -219,6 +233,7 @@ func (appCtx *AppContext) cacheList(ctx *fasthttp.RequestCtx) {
 	ctx.Write(data)
 }
 
+// [Obsolete]
 func (appCtx *AppContext) getDeps(deps map[*File]bool, file *File) {
 	if file.dependents == nil {
 		return
@@ -234,6 +249,7 @@ func (appCtx *AppContext) getDeps(deps map[*File]bool, file *File) {
 	}
 }
 
+// [Obsolete]
 func (appCtx *AppContext) queryDeps(ctx *fasthttp.RequestCtx) {
 	uri := string(ctx.QueryArgs().Peek("uri"))
 	deps := map[*File]bool{}
@@ -262,6 +278,7 @@ func (appCtx *AppContext) queryDeps(ctx *fasthttp.RequestCtx) {
 	ctx.Write(data)
 }
 
+// [Obsolete]
 func (appCtx *AppContext) boundaryQuotaList(ctx *fasthttp.RequestCtx) {
 	boundary, _ := ctx.QueryArgs().GetUfloat("boundary")
 
@@ -394,6 +411,9 @@ func (appCtx *AppContext) ControlService() func() {
 
 			case "/cost-list":
 				appCtx.costList(ctx)
+
+			case "/info":
+				appCtx.fileInfo(ctx)
 
 			case "/log-list":
 				appCtx.logList(ctx)

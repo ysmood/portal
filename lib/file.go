@@ -40,7 +40,7 @@ type File struct {
 	ContentType string      `json:"-"` // TODO: hack the double set of fasthttp Content-Type header
 	Quota       uint64      `json:"quota"`
 	Cost        uint64      `json:"cost"`
-	Concurrent  uint32      `json:"Concurrent"`
+	Concurrent  uint32      `json:"concurrent"`
 	Count       uint64      `json:"count"`
 	dependents  *dependentSet
 }

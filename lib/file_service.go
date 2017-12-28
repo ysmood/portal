@@ -60,6 +60,12 @@ func (appCtx *AppContext) requestFile(uri string) *File {
 		}
 	}
 
+	if res.StatusCode == 500 {
+		return &File{
+			Body: []byte("file service error"),
+		}
+	}
+
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)

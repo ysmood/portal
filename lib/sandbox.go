@@ -197,6 +197,10 @@ func newSandbox() *gisp.Sandbox {
 				ctx.Error(err.Error())
 			}
 
+			if list == nil {
+				return []interface{}{}
+			}
+
 			env.appCtx.glob.Set(isDesc, pattern, list)
 
 			return clone(list)

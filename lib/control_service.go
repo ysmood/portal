@@ -55,15 +55,15 @@ func (appCtx *AppContext) updateFile(ctx *fasthttp.RequestCtx) {
 
 	switch action {
 	case "create":
-		appCtx.glob.UpdateToList(uri)
 		file := appCtx.requestFile(uri)
 		appCtx.cache.Set(uri, file)
+		appCtx.glob.UpdateToList(uri)
 
 	case "update":
-		appCtx.glob.UpdateToList(uri)
 		file := appCtx.requestFile(uri)
 		appCtx.clearDependents(uri)
 		appCtx.cache.Set(uri, file)
+		appCtx.glob.UpdateToList(uri)
 
 	case "delete":
 		appCtx.glob.DelFromList(uri)

@@ -95,7 +95,6 @@ func (c *costCache) setQPS() {
 		info := item.Value().(*costInfo)
 		info.qps = uint32(float64(info.count-info.oldCount) / span.Seconds())
 		info.oldCount = info.count
-		c.cache.Set(item.Key(), info)
 	}
 
 	c.tick = now
@@ -138,7 +137,7 @@ func (c *costCache) end(uri string, num uint64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	cache, has := c.cache.Peek(uri)
+	cache, has := c.cache.Get(uri)
 
 	if !has {
 		c.cache.Set(uri, &costInfo{
@@ -158,7 +157,6 @@ func (c *costCache) end(uri string, num uint64) {
 	}
 
 	info.cost += num
-	c.cache.Set(uri, info)
 }
 
 func (c *costCache) many(uri string, quota uint64, concurrent uint32) bool {
@@ -194,13 +192,11 @@ func (c *costCache) many(uri string, quota uint64, concurrent uint32) bool {
 
 	if info.concurrent >= concurrent || info.cost >= quota {
 		info.rejected++
-		c.cache.Set(uri, info)
 		return true
 	}
 
 	info.concurrent++
 	info.count++
-	c.cache.Set(uri, info)
 
 	return false
 }

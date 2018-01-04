@@ -103,7 +103,22 @@ func (appCtx *AppContext) testQuery(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	file := &File{Code: data, Quota: maxQuota}
+	msg, msgOk := data.(map[string]interface{})
+
+	if !msgOk {
+		ctx.Error("Invalid message", 400)
+		return
+	}
+
+	msgBody, msgBodyOk := msg["body"].(string)
+
+	if msgBodyOk {
+		ctx.Request.SetBodyString(msgBody)
+	} else {
+		ctx.Request.SetBody(nil)
+	}
+
+	file := &File{Code: msg["code"], Quota: maxQuota}
 
 	body, _, gispErr := appCtx.runGisp(file, ctx, true)
 

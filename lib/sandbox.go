@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -452,6 +453,11 @@ func newSandbox() *gisp.Sandbox {
 			return float64(
 				utils.CompareVersion(ctx.ArgStr(1), ctx.ArgStr(2)),
 			)
+		},
+
+		"float": func(ctx *gisp.Context) interface{} {
+			num, _ := strconv.ParseFloat(ctx.ArgStr(1), 64)
+			return num
 		},
 
 		"$":        gispLib.Raw,

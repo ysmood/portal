@@ -41,7 +41,7 @@ type overloadOptions struct {
 func newOverloadMointer(option *overloadOptions) *overloadMonitor {
 	monitor := &overloadMonitor{
 		lock:   &sync.Mutex{},
-		action: make(chan *overloadMessage, 100000),
+		action: make(chan *overloadMessage),
 		cache: umi.New(&umi.Options{
 			MaxMemSize: 300 * 1024 * 1024, // 300MB
 			GCSpan:     -1,

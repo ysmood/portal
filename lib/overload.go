@@ -89,6 +89,9 @@ func (monitor *overloadMonitor) add(key string, msg *overloadMessage) {
 }
 
 func (monitor *overloadMonitor) pop() {
+	if monitor.cache.Count() == 0 {
+		return
+	}
 	monitor.lock.Lock()
 	defer monitor.lock.Unlock()
 

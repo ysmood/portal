@@ -137,7 +137,7 @@ func (c *costCache) end(uri string, num uint64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	cache, has := c.cache.Get(uri)
+	cache, has := c.cache.Peek(uri)
 
 	if !has {
 		c.cache.Set(uri, &costInfo{

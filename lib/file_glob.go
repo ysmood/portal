@@ -45,7 +45,10 @@ func (g *globCache) matches(uri string) (results []*matchInfo) {
 		matched, err := regexp.MatchString(pattern, uri)
 
 		if err == nil && matched {
-			val, _ := desc.Get(pattern)
+			val, has := desc.Get(pattern)
+			if !has {
+				continue
+			}
 			results = append(results, &matchInfo{
 				pattern: pattern,
 				order:   true,
@@ -58,7 +61,10 @@ func (g *globCache) matches(uri string) (results []*matchInfo) {
 		matched, err := regexp.MatchString(pattern, uri)
 
 		if err == nil && matched {
-			val, _ := asc.Get(pattern)
+			val, has := asc.Get(pattern)
+			if !has {
+				continue
+			}
 			results = append(results, &matchInfo{
 				pattern: pattern,
 				order:   false,

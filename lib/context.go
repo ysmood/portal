@@ -23,6 +23,8 @@ type AppContext struct {
 	glob            *globCache
 	log             *logCache
 	cost            *costCache
+	overloadMointer *overloadMonitor
+	runtimeCache    *runtimeCache
 	addr            string
 	ctrlServiceAddr string
 	fileServiceAddr string
@@ -51,7 +53,7 @@ func NewAppContext() *AppContext {
 	flag.StringVar(&ctrlServiceAddr, "fileAddr", utils.LookupStrEnv("portalFileAddr", "127.0.0.1:7071"), "backend file service address")
 	flag.StringVar(&fileServiceAddr, "ctrlAddr", utils.LookupStrEnv("portalCtrlAddr", "127.0.0.1:7000"), "control file service address")
 	flag.IntVar(&cacheSize, "cacheSize", utils.LookupIntEnv("portalCacheSize", 2*1024*1024*1024), "cache size, default 2GB")
-	flag.IntVar(&globCacheSize, "globCacheSize", utils.LookupIntEnv("portalGlobCacheSize", 3*1024*1024), "cache size, default 300MB")
+	flag.IntVar(&globCacheSize, "globCacheSize", utils.LookupIntEnv("portalGlobCacheSize", 300*1024*1024), "cache size, default 300MB")
 	flag.StringVar(&dbPath, "dbPath", utils.LookupStrEnv("portalDbPath", path.Join(usr.HomeDir, ".portm-portal.db")), "path of the database file")
 	flag.IntVar(&overload, "overload", utils.LookupIntEnv("portalOverload", 300), "cache overload number")
 	flag.StringVar(&blacklist, "blackList", utils.LookupStrEnv("portalBlacklist", ""), "uri prefix black list")
@@ -64,25 +66,31 @@ func NewAppContext() *AppContext {
 
 	go rc.worker()
 
-	return &AppContext{
-		cache: umi.New(&umi.Options{
-			MaxMemSize:  uint64(cacheSize),
+	cache := umi.New(&umi.Options{
+		MaxMemSize:  uint64(cacheSize),
+		PromoteRate: -1,
+		TTL:         10 * time.Minute,
+	})
+
+	glob := &globCache{
+		lock: &sync.Mutex{},
+		descCache: umi.New(&umi.Options{
+			MaxMemSize:  uint64(globCacheSize),
 			PromoteRate: -1,
 			TTL:         10 * time.Minute,
 		}),
-		glob: &globCache{
-			lock: &sync.Mutex{},
-			descCache: umi.New(&umi.Options{
-				MaxMemSize:  uint64(globCacheSize),
-				PromoteRate: -1,
-				TTL:         10 * time.Minute,
-			}),
-			ascCache: umi.New(&umi.Options{
-				MaxMemSize:  uint64(globCacheSize),
-				PromoteRate: -1,
-				TTL:         10 * time.Minute,
-			}),
-		},
+		ascCache: umi.New(&umi.Options{
+			MaxMemSize:  uint64(globCacheSize),
+			PromoteRate: -1,
+			TTL:         10 * time.Minute,
+		}),
+	}
+
+	rtCache := newRuntimeCache()
+
+	return &AppContext{
+		cache: cache,
+		glob:  glob,
 		log: &logCache{
 			cache: umi.New(&umi.Options{
 				MaxMemSize:  10 * 1024 * 1024, // 10MB
@@ -90,6 +98,17 @@ func NewAppContext() *AppContext {
 				GCSize:      -1,
 			}),
 		},
+		overloadMointer: newOverloadMointer(&overloadOptions{
+			fileHandler: func(uri string) {
+				cache.Del(uri)
+				rtCache.flush(uri)
+			},
+			globHandler: func(uri string, desc bool) {
+				glob.getCache(desc).Del(uri)
+				rtCache.flush(uri)
+			},
+		}),
+		runtimeCache:    rtCache,
 		cost:            newCostCache(),
 		addr:            addr,
 		ctrlServiceAddr: ctrlServiceAddr,

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -53,14 +54,11 @@ func (appCtx *AppContext) requestFile(uri string) *File {
 	}).String())
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-
-		return &File{
-			Body: []byte("file service error"),
+		fmt.Fprintln(os.Stderr, uri+" connect error:\n"+err.Error())
+		appCtx.overloadMointer.action <- &overloadMessage{
+			origin: overloadOriginFile,
+			uri:    uri,
 		}
-	}
-
-	if res.StatusCode == 500 {
 		return &File{
 			Body: []byte("file service error"),
 		}
@@ -71,9 +69,24 @@ func (appCtx *AppContext) requestFile(uri string) *File {
 	body, err := ioutil.ReadAll(res.Body)
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		fmt.Fprintln(os.Stderr, uri+" read error:\n"+err.Error())
+		appCtx.overloadMointer.action <- &overloadMessage{
+			origin: overloadOriginFile,
+			uri:    uri,
+		}
 		return &File{
 			Body: []byte("read file service error"),
+		}
+	}
+
+	if res.StatusCode != 200 {
+		fmt.Fprintln(os.Stderr, uri+":"+strconv.Itoa(res.StatusCode)+"\n"+string(body))
+		appCtx.overloadMointer.action <- &overloadMessage{
+			origin: overloadOriginFile,
+			uri:    uri,
+		}
+		return &File{
+			Body: []byte("file service error"),
 		}
 	}
 

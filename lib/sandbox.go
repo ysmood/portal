@@ -195,16 +195,51 @@ func newSandbox() *gisp.Sandbox {
 			`)
 
 			if err != nil {
-				ctx.Error(err.Error())
-			}
-
-			if list == nil {
-				return []interface{}{}
+				fmt.Fprintln(os.Stderr, pattern+" glob connect error:\n"+err.Error())
+				list = []interface{}{}
+				env.appCtx.overloadMointer.action <- &overloadMessage{
+					origin: overloadOriginGisp,
+					uri:    pattern,
+					desc:   isDesc,
+				}
+			} else if _, ok := list.([]interface{}); !ok {
+				fmt.Fprintln(os.Stderr, pattern+" glob parse error")
+				list = []interface{}{}
+				env.appCtx.overloadMointer.action <- &overloadMessage{
+					origin: overloadOriginGisp,
+					uri:    pattern,
+					desc:   isDesc,
+				}
 			}
 
 			env.appCtx.glob.Set(isDesc, pattern, list)
 
 			return clone(list)
+		},
+
+		"cache": func(ctx *gisp.Context) interface{} {
+			env := ctx.ENV.(*gispEnv)
+			key := ctx.ArgStr(1)
+
+			value, has := env.appCtx.runtimeCache.get(env.file.URI, key)
+
+			if has {
+				return clone(value)
+			}
+
+			deps := ctx.ArgArr(2)
+
+			newDeps := []string{}
+
+			for _, dep := range deps {
+				newDeps = append(newDeps, dep.(string))
+			}
+
+			value = ctx.Arg(3)
+
+			env.appCtx.runtimeCache.set(env.file.URI, key, value, newDeps)
+
+			return clone(value)
 		},
 
 		"request": func(ctx *gisp.Context) interface{} {

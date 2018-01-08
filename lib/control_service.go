@@ -3,6 +3,7 @@ package lib
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
 	"runtime"
@@ -58,17 +59,20 @@ func (appCtx *AppContext) updateFile(ctx *fasthttp.RequestCtx) {
 		file := appCtx.requestFile(uri)
 		appCtx.cache.Set(uri, file)
 		appCtx.glob.UpdateToList(uri)
+		appCtx.runtimeCache.flush(uri)
 
 	case "update":
 		file := appCtx.requestFile(uri)
 		appCtx.clearDependents(uri)
 		appCtx.cache.Set(uri, file)
 		appCtx.glob.UpdateToList(uri)
+		appCtx.runtimeCache.flush(uri)
 
 	case "delete":
 		appCtx.glob.DelFromList(uri)
 		appCtx.clearDependents(uri)
 		appCtx.cache.Del(uri)
+		appCtx.runtimeCache.flush(uri)
 
 	default:
 		ctx.Error("bad action", 400)
@@ -118,7 +122,11 @@ func (appCtx *AppContext) testQuery(ctx *fasthttp.RequestCtx) {
 		ctx.Request.SetBody(nil)
 	}
 
-	file := &File{Code: msg["code"], Quota: maxQuota}
+	nano := time.Now().UnixNano()
+	random := rand.New(rand.NewSource(nano))
+	uri := "test:" + strconv.Itoa(random.Intn(10000)) + "-" + strconv.FormatInt(nano, 10)
+
+	file := &File{Code: msg["code"], URI: uri, Quota: maxQuota}
 
 	body, _, gispErr := appCtx.runGisp(file, ctx, true)
 

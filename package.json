@@ -1,6 +1,6 @@
 {
   "name": "portal-linux",
-  "version": "1.11.22",
+  "version": "1.11.23",
   "description": "a high performance cache server",
   "main": "index.js",
   "scripts": {

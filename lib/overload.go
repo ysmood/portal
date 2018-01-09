@@ -113,3 +113,10 @@ func (monitor *overloadMonitor) pop() {
 		}
 	}
 }
+
+func (monitor *overloadMonitor) purge() {
+	monitor.lock.Lock()
+	defer monitor.lock.Unlock()
+
+	monitor.cache.Purge()
+}

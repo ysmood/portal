@@ -394,6 +394,7 @@ func (appCtx *AppContext) getProxyMap() {
 }
 
 func (appCtx *AppContext) purge(ctx *fasthttp.RequestCtx) {
+	appCtx.overloadMointer.purge()
 	appCtx.cache.Purge()
 
 	appCtx.getProxyMap()

@@ -204,7 +204,11 @@ func (appCtx *AppContext) costList(ctx *fasthttp.RequestCtx) {
 		})
 	}
 
-	data, _ := json.Marshal(list)
+	data, _ := json.Marshal(map[string]interface{}{
+		"count": count,
+		"time":  time.Now().UnixNano() / 1000 / 1000,
+		"list":  list,
+	})
 
 	ctx.SetContentType("application/json; charset=utf-8")
 	ctx.Write(data)

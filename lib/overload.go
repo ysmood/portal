@@ -105,6 +105,7 @@ func (monitor *overloadMonitor) pop() {
 
 	for _, item := range items {
 		msg := item.Value().(*overloadMessage)
+		monitor.cache.Del(item.Key())
 		switch msg.origin {
 		case overloadOriginFile:
 			monitor.fileHandler(msg.uri)

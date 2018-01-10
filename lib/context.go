@@ -3,7 +3,6 @@ package lib
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -101,12 +100,10 @@ func NewAppContext() *AppContext {
 		},
 		overloadMointer: newOverloadMointer(&overloadOptions{
 			fileHandler: func(uri string) {
-				fmt.Println(uri)
 				cache.Del(uri)
 				rtCache.flush(uri)
 			},
 			globHandler: func(uri string, desc bool) {
-				fmt.Println(uri)
 				glob.getCache(desc).Del(uri)
 				rtCache.flush(uri)
 			},

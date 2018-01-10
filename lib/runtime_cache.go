@@ -61,3 +61,7 @@ func (rt *runtimeCache) flush(uri string) {
 		}
 	}
 }
+
+func (rt *runtimeCache) purge() {
+	rt.cache.Purge()
+}

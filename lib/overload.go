@@ -16,6 +16,7 @@ type overloadMonitor struct {
 	fileHandler      overloadFileHandler
 	globHandler      overloadGlobHandler
 	popLimit         int
+	tick             time.Time
 }
 
 const (
@@ -46,10 +47,11 @@ func newOverloadMointer(option *overloadOptions) *overloadMonitor {
 			MaxMemSize: 300 * 1024 * 1024, // 300MB
 			GCSpan:     -1,
 		}),
-		activityTimeSpan: 600 * time.Millisecond,
+		activityTimeSpan: 1000 * time.Millisecond,
 		fileHandler:      option.fileHandler,
 		globHandler:      option.globHandler,
 		popLimit:         5,
+		tick:             time.Time{},
 	}
 
 	go func() {
@@ -85,11 +87,17 @@ func (monitor *overloadMonitor) add(key string, msg *overloadMessage) {
 	monitor.lock.Lock()
 	defer monitor.lock.Unlock()
 
+	monitor.tick = time.Now()
+
 	monitor.cache.Set(key, msg)
 }
 
 func (monitor *overloadMonitor) pop() {
 	if monitor.cache.Count() == 0 {
+		return
+	}
+	now := time.Now()
+	if now.Sub(monitor.tick).Nanoseconds() < int64(monitor.activityTimeSpan) {
 		return
 	}
 	monitor.lock.Lock()

@@ -73,7 +73,9 @@ func NewAppContext() *AppContext {
 	})
 
 	glob := &globCache{
-		lock: &sync.Mutex{},
+		lock:     &sync.Mutex{},
+		count:    0,
+		overload: int32(overload),
 		descCache: umi.New(&umi.Options{
 			MaxMemSize:  uint64(globCacheSize),
 			PromoteRate: -1,

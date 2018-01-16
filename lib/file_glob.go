@@ -10,6 +10,8 @@ import (
 
 type globCache struct {
 	lock      *sync.Mutex
+	count     int32
+	overload  int32
 	descCache *umi.Cache
 	ascCache  *umi.Cache
 }

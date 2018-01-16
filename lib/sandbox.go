@@ -172,6 +172,13 @@ func newSandbox() *gisp.Sandbox {
 				return clone(list)
 			}
 
+			atomic.AddInt32(&env.appCtx.glob.count, 1)
+			defer atomic.AddInt32(&env.appCtx.glob.count, -1)
+
+			if env.appCtx.glob.count > env.appCtx.glob.overload {
+				return []interface{}{}
+			}
+
 			env.appCtx.glob.lock.Lock()
 			defer env.appCtx.glob.lock.Unlock()
 

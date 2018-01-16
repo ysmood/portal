@@ -435,26 +435,6 @@ func newSandbox() *gisp.Sandbox {
 			return string(val)
 		},
 
-		"header": func(ctx *gisp.Context) interface{} {
-			val := ctx.ENV.(*gispEnv).reqCtx.Request.Header.Peek(ctx.ArgStr(1))
-			if val == nil && ctx.Len() > 2 {
-				return ctx.ArgStr(2)
-			}
-			return string(val)
-		},
-
-		"rawBody": func(ctx *gisp.Context) interface{} {
-			return string(ctx.ENV.(*gispEnv).reqCtx.PostBody())
-		},
-
-		"body": func(ctx *gisp.Context) interface{} {
-			val := ctx.ENV.(*gispEnv).reqCtx.PostArgs().Peek(ctx.ArgStr(1))
-			if val == nil && ctx.Len() > 2 {
-				return ctx.ArgStr(2)
-			}
-			return string(val)
-		},
-
 		"queries": func(ctx *gisp.Context) interface{} {
 			data := ctx.ENV.(*gispEnv).query.PeekMulti(
 				ctx.ArgStr(1),
@@ -469,8 +449,50 @@ func newSandbox() *gisp.Sandbox {
 			return list
 		},
 
+		"rawBody": func(ctx *gisp.Context) interface{} {
+			return string(ctx.ENV.(*gispEnv).reqCtx.PostBody())
+		},
+
+		"body": func(ctx *gisp.Context) interface{} {
+			val := ctx.ENV.(*gispEnv).reqCtx.PostArgs().Peek(ctx.ArgStr(1))
+			if val == nil && ctx.Len() > 2 {
+				return ctx.ArgStr(2)
+			}
+			return string(val)
+		},
+
+		"bodies": func(ctx *gisp.Context) interface{} {
+			data := ctx.ENV.(*gispEnv).reqCtx.PostArgs().PeekMulti(
+				ctx.ArgStr(1),
+			)
+
+			list := make([]interface{}, len(data))
+
+			for i, item := range data {
+				list[i] = string(item)
+			}
+
+			return list
+		},
+
+		"header": func(ctx *gisp.Context) interface{} {
+			val := ctx.ENV.(*gispEnv).reqCtx.Request.Header.Peek(ctx.ArgStr(1))
+			if val == nil && ctx.Len() > 2 {
+				return ctx.ArgStr(2)
+			}
+			return string(val)
+		},
+
 		"path": func(ctx *gisp.Context) interface{} {
 			return string(ctx.ENV.(*gispEnv).reqCtx.Path())
+		},
+
+		"host": func(ctx *gisp.Context) interface{} {
+			return string(ctx.ENV.(*gispEnv).reqCtx.Host())
+		},
+
+		"href": func(ctx *gisp.Context) interface{} {
+			return "http://" + string(ctx.ENV.(*gispEnv).reqCtx.Host()) + string(ctx.ENV.(*gispEnv).reqCtx.Path())
 		},
 
 		"startsWith": func(ctx *gisp.Context) interface{} {

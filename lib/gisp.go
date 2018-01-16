@@ -21,7 +21,7 @@ type gispEnv struct {
 	fnRunCount     *int
 }
 
-const maxFnRunCount = 1e5
+const maxFnRunCount = 1e6
 
 func preRun(ctx *gisp.Context) {
 	env := ctx.ENV.(*gispEnv)

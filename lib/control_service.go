@@ -43,7 +43,9 @@ func (appCtx *AppContext) clearDependents(uri string) {
 	for _, v := range appCtx.cache.Values() {
 		f := v.(*File)
 
-		f.dependents.Del(file)
+		if f.dependents != nil {
+			f.dependents.Del(file)
+		}
 	}
 }
 

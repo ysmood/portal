@@ -234,12 +234,21 @@ func newSandbox() *gisp.Sandbox {
 				return clone(value)
 			}
 
+			env.appCtx.runtimeCache.lock.Lock()
+			defer env.appCtx.runtimeCache.lock.Unlock()
+
+			value, has = env.appCtx.runtimeCache.get(env.file.URI, key)
+
+			if has {
+				return clone(value)
+			}
+
 			deps := ctx.ArgArr(2)
 
-			newDeps := []string{}
+			newDeps := make([]string, len(deps))
 
-			for _, dep := range deps {
-				newDeps = append(newDeps, dep.(string))
+			for i, dep := range deps {
+				newDeps[i] = dep.(string)
 			}
 
 			value = ctx.Arg(3)

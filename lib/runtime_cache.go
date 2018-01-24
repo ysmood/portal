@@ -2,12 +2,14 @@ package lib
 
 import (
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/ysmood/umi"
 )
 
 type runtimeCache struct {
+	lock  *sync.Mutex
 	cache *umi.Cache
 }
 
@@ -17,9 +19,9 @@ type runtimeInfo struct {
 	deps  []string
 }
 
-// Un thread safety
 func newRuntimeCache() *runtimeCache {
 	rt := &runtimeCache{
+		lock: &sync.Mutex{},
 		cache: umi.New(&umi.Options{
 			MaxMemSize:  200 * 1024 * 1024, // 200MB
 			PromoteRate: -1,
@@ -49,6 +51,8 @@ func (rt *runtimeCache) get(uri string, key string) (interface{}, bool) {
 }
 
 func (rt *runtimeCache) flush(uri string) {
+	rt.lock.Lock()
+	defer rt.lock.Unlock()
 	items := rt.cache.Items()
 	for _, item := range items {
 		info := *item.Value().(*runtimeInfo)

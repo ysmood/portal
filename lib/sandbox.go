@@ -344,6 +344,16 @@ func newSandbox() *gisp.Sandbox {
 			return name + "(" + string(json) + ")"
 		},
 
+		"stringify": func(ctx *gisp.Context) interface{} {
+			json, err := json.Marshal(ctx.Arg(1))
+
+			if err != nil {
+				ctx.Error(err.Error())
+			}
+
+			return string(json)
+		},
+
 		"setResHeader": func(ctx *gisp.Context) interface{} {
 			env := ctx.ENV.(*gispEnv)
 

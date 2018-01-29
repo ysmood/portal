@@ -120,8 +120,10 @@ func (appCtx *AppContext) testQuery(ctx *fasthttp.RequestCtx) {
 
 	if msgBodyOk {
 		ctx.Request.SetBodyString(msgBody)
+		ctx.Request.PostArgs().Parse(msgBody)
 	} else {
 		ctx.Request.SetBody(nil)
+		ctx.Request.PostArgs().ParseBytes(nil)
 	}
 
 	nano := time.Now().UnixNano()

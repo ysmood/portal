@@ -448,10 +448,31 @@ func newSandbox() *gisp.Sandbox {
 
 		"query": func(ctx *gisp.Context) interface{} {
 			val := ctx.ENV.(*gispEnv).query.Peek(ctx.ArgStr(1))
-			if val == nil && ctx.Len() > 2 {
-				return ctx.ArgStr(2)
+
+			mode := ctx.Arg(3)
+			if mode == nil {
+				mode = "string"
 			}
-			return string(val)
+
+			switch mode.(string) {
+			case "float":
+				if val == nil && ctx.Len() > 2 {
+					return ctx.ArgNum(2)
+				}
+				num, _ := strconv.ParseFloat(string(val), 64)
+				return num
+			case "boolean":
+				if val == nil && ctx.Len() > 2 {
+					return ctx.ArgBool(2)
+				}
+				boolean, _ := strconv.ParseBool(string(val))
+				return boolean
+			default:
+				if val == nil && ctx.Len() > 2 {
+					return ctx.ArgStr(2)
+				}
+				return string(val)
+			}
 		},
 
 		"queries": func(ctx *gisp.Context) interface{} {
@@ -459,10 +480,24 @@ func newSandbox() *gisp.Sandbox {
 				ctx.ArgStr(1),
 			)
 
+			mode := ctx.Arg(2)
+			if mode == nil {
+				mode = "string"
+			}
+
 			list := make([]interface{}, len(data))
 
 			for i, item := range data {
-				list[i] = string(item)
+				switch mode.(string) {
+				case "float":
+					num, _ := strconv.ParseFloat(string(item), 64)
+					list[i] = num
+				case "boolean":
+					boolean, _ := strconv.ParseBool(string(item))
+					list[i] = boolean
+				default:
+					list[i] = string(item)
+				}
 			}
 
 			return list
@@ -474,10 +509,31 @@ func newSandbox() *gisp.Sandbox {
 
 		"body": func(ctx *gisp.Context) interface{} {
 			val := ctx.ENV.(*gispEnv).reqCtx.PostArgs().Peek(ctx.ArgStr(1))
-			if val == nil && ctx.Len() > 2 {
-				return ctx.ArgStr(2)
+
+			mode := ctx.Arg(3)
+			if mode == nil {
+				mode = "string"
 			}
-			return string(val)
+
+			switch mode.(string) {
+			case "float":
+				if val == nil && ctx.Len() > 2 {
+					return ctx.ArgNum(2)
+				}
+				num, _ := strconv.ParseFloat(string(val), 64)
+				return num
+			case "boolean":
+				if val == nil && ctx.Len() > 2 {
+					return ctx.ArgBool(2)
+				}
+				boolean, _ := strconv.ParseBool(string(val))
+				return boolean
+			default:
+				if val == nil && ctx.Len() > 2 {
+					return ctx.ArgStr(2)
+				}
+				return string(val)
+			}
 		},
 
 		"bodies": func(ctx *gisp.Context) interface{} {
@@ -485,10 +541,24 @@ func newSandbox() *gisp.Sandbox {
 				ctx.ArgStr(1),
 			)
 
+			mode := ctx.Arg(2)
+			if mode == nil {
+				mode = "string"
+			}
+
 			list := make([]interface{}, len(data))
 
 			for i, item := range data {
-				list[i] = string(item)
+				switch mode.(string) {
+				case "float":
+					num, _ := strconv.ParseFloat(string(item), 64)
+					list[i] = num
+				case "boolean":
+					boolean, _ := strconv.ParseBool(string(item))
+					list[i] = boolean
+				default:
+					list[i] = string(item)
+				}
 			}
 
 			return list

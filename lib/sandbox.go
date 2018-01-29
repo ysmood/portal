@@ -543,6 +543,11 @@ func newSandbox() *gisp.Sandbox {
 			return num
 		},
 
+		"boolean": func(ctx *gisp.Context) interface{} {
+			boolean, _ := strconv.ParseBool(ctx.ArgStr(1))
+			return boolean
+		},
+
 		"$":        gispLib.Raw,
 		"throw":    gispLib.Throw,
 		"get":      gispLib.Get,

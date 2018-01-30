@@ -618,6 +618,21 @@ func newSandbox() *gisp.Sandbox {
 			return boolean
 		},
 
+		"recover": func(ctx *gisp.Context) (val interface{}) {
+			defer func() {
+				exp := recover()
+				if exp != nil {
+					if ctx.Len() > 2 {
+						val = ctx.Arg(2)
+					} else {
+						val = exp
+					}
+				}
+			}()
+			val = ctx.Arg(1)
+			return
+		},
+
 		"$":        gispLib.Raw,
 		"throw":    gispLib.Throw,
 		"get":      gispLib.Get,

@@ -633,11 +633,26 @@ func newSandbox() *gisp.Sandbox {
 			return
 		},
 
+		"str": func(ctx *gisp.Context) interface{} {
+			val := ctx.Arg(1)
+			switch val.(type) {
+			case string:
+				return val.(string)
+			case float64:
+				return strconv.FormatFloat(val.(float64), 'f', -1, 64)
+			case StringBytes:
+				return string(val.(StringBytes))
+			case []byte:
+				return string(val.([]byte))
+			default:
+				return fmt.Sprint(val)
+			}
+		},
+
 		"$":        gispLib.Raw,
 		"throw":    gispLib.Throw,
 		"get":      gispLib.Get,
 		"set":      gispLib.Set,
-		"str":      gispLib.Str,
 		"len":      gispLib.Len,
 		"includes": gispLib.Includes,
 		"|":        gispLib.Arr,

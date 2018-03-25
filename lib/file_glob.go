@@ -93,10 +93,6 @@ func (g *globCache) UpdateToList(uri string) {
 func (g *globCache) DelFromList(uri string) {
 	matches := g.matches(uri)
 	for _, match := range matches {
-		if match.order {
-			g.Set(true, match.pattern, utils.DelFromArr(match.list.([]interface{}), uri, nil))
-		} else {
-			g.Set(false, match.pattern, utils.DelFromArr(match.list.([]interface{}), uri, nil))
-		}
+		g.Set(match.order, match.pattern, utils.DelFromArr(match.list.([]interface{}), uri, nil))
 	}
 }

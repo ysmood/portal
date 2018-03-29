@@ -79,12 +79,12 @@ func NewAppContext() *AppContext {
 		descCache: umi.New(&umi.Options{
 			MaxMemSize:  uint64(globCacheSize),
 			PromoteRate: -1,
-			TTL:         10 * time.Minute,
+			GCSize:      -1,
 		}),
 		ascCache: umi.New(&umi.Options{
 			MaxMemSize:  uint64(globCacheSize),
 			PromoteRate: -1,
-			TTL:         10 * time.Minute,
+			GCSize:      -1,
 		}),
 	}
 

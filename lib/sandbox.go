@@ -194,12 +194,7 @@ func newSandbox() *gisp.Sandbox {
 				order = "desc"
 			}
 
-			err := env.appCtx.rpc(&list, `
-				["map",
-					["globFile", "`+pattern+`", "`+order+`"],
-					["iteratee", "uri"]
-				]
-			`)
+			err := env.appCtx.rpc(&list, `["globFile", "`+pattern+`", "`+order+`"]`)
 
 			if err != nil {
 				fmt.Fprintln(os.Stderr, pattern+" glob connect error:\n"+err.Error())

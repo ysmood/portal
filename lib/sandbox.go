@@ -567,6 +567,11 @@ func newSandbox() *gisp.Sandbox {
 			return string(val)
 		},
 
+		"method": func(ctx *gisp.Context) interface{} {
+			val := ctx.ENV.(*gispEnv).reqCtx.Method()
+			return string(val)
+		},
+
 		"path": func(ctx *gisp.Context) interface{} {
 			return string(ctx.ENV.(*gispEnv).reqCtx.Path())
 		},

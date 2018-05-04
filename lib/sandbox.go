@@ -438,7 +438,7 @@ func newSandbox() *gisp.Sandbox {
 		},
 
 		"rawQuery": func(ctx *gisp.Context) interface{} {
-			return ctx.ENV.(*gispEnv).reqCtx.QueryArgs().String()
+			return ctx.ENV.(*gispEnv).query.String()
 		},
 
 		"query": func(ctx *gisp.Context) interface{} {

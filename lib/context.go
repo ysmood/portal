@@ -30,7 +30,7 @@ type AppContext struct {
 	fileServiceAddr string
 	dbPath          string
 	overload        int32
-	proxyMap        utils.PrefixMap
+	proxyMap        *utils.PrefixMap
 	reqCount        *reqCount
 	queryPrefix     []byte
 	globLock        *sync.Mutex
@@ -117,12 +117,15 @@ func NewAppContext() *AppContext {
 		fileServiceAddr: fileServiceAddr,
 		dbPath:          dbPath,
 		overload:        int32(overload),
-		proxyMap:        utils.PrefixMap{},
-		reqCount:        rc,
-		queryPrefix:     []byte("query."),
-		workingLock:     &sync.Mutex{},
-		workingCount:    0,
-		blacklist:       strings.Split(blacklist, ","),
+		proxyMap: &utils.PrefixMap{
+			Lock: &sync.RWMutex{},
+			Dist: make(map[string]interface{}),
+		},
+		reqCount:     rc,
+		queryPrefix:  []byte("query."),
+		workingLock:  &sync.Mutex{},
+		workingCount: 0,
+		blacklist:    strings.Split(blacklist, ","),
 	}
 }
 

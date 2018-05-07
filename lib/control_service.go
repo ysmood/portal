@@ -16,21 +16,6 @@ import (
 	"github.com/ysmood/portal/lib/utils"
 )
 
-func (appCtx *AppContext) updateProxyCache(uri string) {
-	// update the proxy
-	cache := appCtx.requestFile(uri)
-
-	if _, has := appCtx.proxyMap.Get(uri); has {
-		delete(appCtx.proxyMap, uri)
-		fmt.Println("delete proxy rule:", cache.URI)
-	}
-
-	if cache.Type == fileTypeProxy {
-		appCtx.proxyMap[uri] = cache
-		fmt.Println("update proxy rule:", cache.URI)
-	}
-}
-
 func (appCtx *AppContext) clearDependents(uri string) {
 	value, has := appCtx.cache.Get(uri)
 
@@ -54,23 +39,28 @@ func (appCtx *AppContext) updateFile(ctx *fasthttp.RequestCtx) {
 	action := string(ctx.QueryArgs().Peek("action"))
 	uri := string(ctx.QueryArgs().Peek("uri"))
 
-	appCtx.updateProxyCache(uri)
-
 	switch action {
 	case "create":
 		file := appCtx.requestFile(uri)
+		if file.Type == fileTypeProxy {
+			appCtx.proxyMap.Set(uri, file)
+		}
 		appCtx.cache.Set(uri, file)
 		appCtx.glob.UpdateToList(uri)
 		appCtx.runtimeCache.flush(uri)
 
 	case "update":
 		file := appCtx.requestFile(uri)
+		if file.Type == fileTypeProxy {
+			appCtx.proxyMap.Set(uri, file)
+		}
 		appCtx.clearDependents(uri)
 		appCtx.cache.Set(uri, file)
 		appCtx.glob.UpdateToList(uri)
 		appCtx.runtimeCache.flush(uri)
 
 	case "delete":
+		appCtx.proxyMap.Del(uri)
 		appCtx.glob.DelFromList(uri)
 		appCtx.clearDependents(uri)
 		appCtx.cache.Del(uri)
@@ -395,7 +385,7 @@ func (appCtx *AppContext) getProxyMap() {
 	}
 
 	for _, uri := range list {
-		appCtx.proxyMap[uri] = appCtx.requestFile(uri)
+		appCtx.proxyMap.Set(uri, appCtx.requestFile(uri))
 	}
 
 	fmt.Println("proxy rules got:", list)

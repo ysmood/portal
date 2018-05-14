@@ -567,6 +567,28 @@ func newSandbox() *gisp.Sandbox {
 			return string(val)
 		},
 
+		"etag": func(ctx *gisp.Context) interface{} {
+			val := ctx.Arg(1)
+			if val == nil && ctx.Len() > 2 {
+				return ctx.Arg(2)
+			}
+			var body []byte
+			switch val.(type) {
+			case StringBytes:
+				body = val.(StringBytes)
+			case []byte:
+				body = val.([]byte)
+			case string:
+				body = []byte(val.(string))
+			default:
+				bin, err := json.Marshal(val)
+				if err == nil {
+					body = bin
+				}
+			}
+			return utils.ETag(body)
+		},
+
 		"method": func(ctx *gisp.Context) interface{} {
 			val := ctx.ENV.(*gispEnv).reqCtx.Method()
 			return string(val)

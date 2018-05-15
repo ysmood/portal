@@ -586,7 +586,7 @@ func newSandbox() *gisp.Sandbox {
 					body = bin
 				}
 			}
-			return utils.ETag(body)
+			return string(utils.ETag(body))
 		},
 
 		"method": func(ctx *gisp.Context) interface{} {

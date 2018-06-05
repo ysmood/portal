@@ -433,6 +433,15 @@ func newSandbox() *gisp.Sandbox {
 			return randNum.Float64()
 		},
 
+		"initRand": func(ctx *gisp.Context) interface{} {
+			randNum = rand.New(
+				rand.NewSource(
+					time.Now().UnixNano() - int64(crc32.ChecksumIEEE([]byte(hostname))),
+				),
+			)
+			return randNum.Float64()
+		},
+
 		"now": func(ctx *gisp.Context) interface{} {
 			return time.Now().String()
 		},

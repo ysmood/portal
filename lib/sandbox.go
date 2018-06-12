@@ -29,13 +29,8 @@ import (
 
 const maxHashValue = float64(0xFFFFFFFF)
 
-var hostname, _ = os.Hostname()
-
-var randNum = rand.New(
-	rand.NewSource(
-		time.Now().UnixNano() - int64(crc32.ChecksumIEEE([]byte(hostname))),
-	),
-)
+var randNum = initRand()
+var randLock = &sync.Mutex{}
 
 var gispLock = &sync.Mutex{}
 
@@ -43,6 +38,21 @@ const maxRequestBody = 1024 * 1024 // 1MB
 
 var httpClient = &http.Client{
 	Timeout: 3 * time.Second,
+}
+
+func initRand() *rand.Rand {
+	hostname, err := os.Hostname()
+	var seed int64
+	if err != nil {
+		seed = time.Now().UnixNano()
+	} else {
+		seed = time.Now().UnixNano() - int64(crc32.ChecksumIEEE([]byte(hostname)))
+	}
+	return rand.New(
+		rand.NewSource(
+			seed,
+		),
+	)
 }
 
 func newSandbox() *gisp.Sandbox {
@@ -429,16 +439,15 @@ func newSandbox() *gisp.Sandbox {
 			return nil
 		},
 
-		"rand": func(ctx *gisp.Context) interface{} {
-			return randNum.Float64()
+		"rand": func(ctx *gisp.Context) (val interface{}) {
+			randLock.Lock()
+			val = randNum.Float64()
+			randLock.Unlock()
+			return
 		},
 
 		"initRand": func(ctx *gisp.Context) interface{} {
-			randNum = rand.New(
-				rand.NewSource(
-					time.Now().UnixNano() - int64(crc32.ChecksumIEEE([]byte(hostname))),
-				),
-			)
+			randNum = initRand()
 			return randNum.Float64()
 		},
 

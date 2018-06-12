@@ -135,7 +135,6 @@ func (c *costCache) printList() {
 
 func (c *costCache) end(uri string, num uint64) {
 	c.lock.Lock()
-	defer c.lock.Unlock()
 
 	cache, has := c.cache.Peek(uri)
 
@@ -147,6 +146,7 @@ func (c *costCache) end(uri string, num uint64) {
 			concurrent: 0,
 			rejected:   0,
 		})
+		c.lock.Unlock()
 		return
 	}
 
@@ -157,11 +157,11 @@ func (c *costCache) end(uri string, num uint64) {
 	}
 
 	info.cost += num
+	c.lock.Unlock()
 }
 
 func (c *costCache) many(uri string, quota uint64, concurrent uint32) bool {
 	c.lock.Lock()
-	defer c.lock.Unlock()
 
 	cache, has := c.cache.Peek(uri)
 
@@ -175,6 +175,7 @@ func (c *costCache) many(uri string, quota uint64, concurrent uint32) bool {
 				rejected:   1,
 			}
 			c.cache.Set(uri, info)
+			c.lock.Unlock()
 			return true
 		}
 		info := &costInfo{
@@ -185,6 +186,7 @@ func (c *costCache) many(uri string, quota uint64, concurrent uint32) bool {
 			rejected:   0,
 		}
 		c.cache.Set(uri, info)
+		c.lock.Unlock()
 		return false
 	}
 
@@ -192,18 +194,19 @@ func (c *costCache) many(uri string, quota uint64, concurrent uint32) bool {
 
 	if info.concurrent >= concurrent || info.cost >= quota {
 		info.rejected++
+		c.lock.Unlock()
 		return true
 	}
 
 	info.concurrent++
 	info.count++
+	c.lock.Unlock()
 
 	return false
 }
 
 func (c *costCache) get(uri string) (info *costInfo) {
 	c.lock.RLock()
-	defer c.lock.RUnlock()
 
 	cache, has := c.cache.Peek(uri)
 
@@ -212,6 +215,8 @@ func (c *costCache) get(uri string) (info *costInfo) {
 	} else {
 		info = emptyCostInfo
 	}
+
+	c.lock.RUnlock()
 
 	return
 }

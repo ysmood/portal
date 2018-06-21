@@ -693,6 +693,7 @@ func newSandbox() *gisp.Sandbox {
 		"throw":    gispLib.Throw,
 		"get":      gispLib.Get,
 		"set":      gispLib.Set,
+		"del":      gispLib.Del,
 		"len":      gispLib.Len,
 		"includes": gispLib.Includes,
 		"|":        gispLib.Arr,
